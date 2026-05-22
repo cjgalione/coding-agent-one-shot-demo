@@ -15,6 +15,7 @@ import { loadEnvFile } from "../src/utils/env.js";
 
 const defaultSystemPrompt = readFileSync("prompts/system.md", "utf8");
 const defaultTaskWrapperPrompt = readFileSync("prompts/task-wrapper.md", "utf8");
+const remoteEvalExperimentName = "one-shot-remote-ui";
 
 type PromptParamValue = {
   prompt?: string;
@@ -268,7 +269,7 @@ Eval<OneShotInput, EvalOutput, { expected_ui_terms: string[] }>(
     ),
     namedScore("RequirementCoverage", requirementCoverage)
   ],
-  experimentName: `one-shot-remote-ui-${new Date().toISOString()}`,
+  experimentName: remoteEvalExperimentName,
   trialCount: 1
   }
 );
