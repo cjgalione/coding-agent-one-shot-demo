@@ -2,7 +2,7 @@
   {
     "id": "inventory-dashboard-001",
     "user_request": "Build an inventory dashboard where an operations manager can see parts, filter by low stock, and add a new part.",
-    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
+    "repo_commit_sha": "ce66e021fb57b854fe447c913d417f243d350365",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -34,7 +34,7 @@
   {
     "id": "reliability-maintenance-002",
     "user_request": "Build a reliability dashboard where a maintenance manager can see equipment failure risks, filter critical assets, and assign a recommended maintenance action.",
-    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
+    "repo_commit_sha": "ce66e021fb57b854fe447c913d417f243d350365",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -66,7 +66,7 @@
   {
     "id": "demand-forecasting-003",
     "user_request": "Build a demand forecasting workspace where a demand planner can compare product forecasts, flag variance, and update a forecast note.",
-    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
+    "repo_commit_sha": "ce66e021fb57b854fe447c913d417f243d350365",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -98,7 +98,7 @@
   {
     "id": "contested-logistics-004",
     "user_request": "Build a contested logistics console where an operations lead can review supply lanes, identify risk, and choose an alternate route.",
-    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
+    "repo_commit_sha": "ce66e021fb57b854fe447c913d417f243d350365",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -130,7 +130,7 @@
   {
     "id": "property-appraisal-005",
     "user_request": "Build a property appraisal review app where an assessor can inspect parcels, compare sales, and mark an appraisal as ready for review.",
-    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
+    "repo_commit_sha": "ce66e021fb57b854fe447c913d417f243d350365",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -162,7 +162,7 @@
   {
     "id": "fraud-alert-review-006",
     "user_request": "Build a fraud alert review screen where an investigator can review suspicious transactions, filter high-risk alerts, and mark an alert as reviewed.",
-    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
+    "repo_commit_sha": "ce66e021fb57b854fe447c913d417f243d350365",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -194,7 +194,7 @@
   {
     "id": "client-onboarding-007",
     "user_request": "Build a client onboarding portal where a customer success manager can see client milestones, mark a kickoff task complete, and add a follow-up note.",
-    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
+    "repo_commit_sha": "ce66e021fb57b854fe447c913d417f243d350365",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -226,7 +226,7 @@
   {
     "id": "restaurant-menu-008",
     "user_request": "Build a restaurant menu management app where an owner can manage categories, toggle dish availability, and preview the customer-facing menu.",
-    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
+    "repo_commit_sha": "ce66e021fb57b854fe447c913d417f243d350365",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -258,7 +258,7 @@
   {
     "id": "feedback-widget-admin-009",
     "user_request": "Build a feedback collection dashboard where a SaaS founder can review ratings, filter low-score comments, and mark feedback for follow-up.",
-    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
+    "repo_commit_sha": "ce66e021fb57b854fe447c913d417f243d350365",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -290,7 +290,7 @@
   {
     "id": "real-estate-leads-010",
     "user_request": "Build a real estate lead capture app where an agent can guide prospects through a two-step property preference form and review submitted leads.",
-    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
+    "repo_commit_sha": "ce66e021fb57b854fe447c913d417f243d350365",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -322,7 +322,7 @@
   {
     "id": "expense-tracker-011",
     "user_request": "Build an expense tracker dashboard where a small team can view monthly spend by category, add an expense, and flag out-of-policy items.",
-    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
+    "repo_commit_sha": "ce66e021fb57b854fe447c913d417f243d350365",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -354,7 +354,7 @@
   {
     "id": "waitlist-admin-012",
     "user_request": "Build a SaaS waitlist page with an admin dashboard where a founder can capture emails, view signups, and mark a lead as contacted.",
-    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
+    "repo_commit_sha": "ce66e021fb57b854fe447c913d417f243d350365",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
