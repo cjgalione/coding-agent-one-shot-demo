@@ -30,8 +30,8 @@ async function createRunnableAppBundle(output: EvalOutput, filename: string) {
     };
   }
 
-  const bundlePath = path.join(os.tmpdir(), filename);
-  await fs.rm(bundlePath, { force: true });
+  const bundleDir = await fs.mkdtemp(path.join(os.tmpdir(), "one-shot-bundle-"));
+  const bundlePath = path.join(bundleDir, filename);
   await execFileAsync("tar", [
     "-czf",
     bundlePath,
@@ -48,6 +48,7 @@ async function createRunnableAppBundle(output: EvalOutput, filename: string) {
 
   const data = await fs.readFile(bundlePath);
   const stat = await fs.stat(bundlePath);
+  await fs.rm(bundleDir, { recursive: true, force: true });
   return {
     data,
     size_bytes: stat.size,
