@@ -11,7 +11,6 @@ import {
 import { logExecutionArtifacts } from "../src/artifacts.js";
 import { readJson } from "../src/utils/files.js";
 import { loadEnvFile } from "../src/utils/env.js";
-import { projectName } from "../src/braintrust-demo.js";
 
 const defaultModalScorerUrl =
   "https://curtis-41436--coding-agent-one-shot-modal-scorer-scorer-app.modal.run";
@@ -107,7 +106,9 @@ function withTemporaryEnv<T>(updates: Record<string, string | undefined>, run: (
 
 loadEnvFile(process.env.ONE_SHOT_DEMO_ENV_FILE);
 
-Eval<OneShotInput, EvalOutput, { expected_ui_terms: string[] }>(projectName(), {
+Eval<OneShotInput, EvalOutput, { expected_ui_terms: string[] }>(
+  "One Shot Coding Agent - Remote Execution",
+  {
   data: async () => {
     const input = await defaultInput();
     return [
@@ -208,4 +209,5 @@ Eval<OneShotInput, EvalOutput, { expected_ui_terms: string[] }>(projectName(), {
   ],
   experimentName: `one-shot-remote-ui-${new Date().toISOString()}`,
   trialCount: 1
-});
+  }
+);
