@@ -18,13 +18,24 @@ const defaultTaskWrapperPrompt = readFileSync("prompts/task-wrapper.md", "utf8")
 const remoteEvalExperimentName = "one-shot-remote-ui";
 
 type PromptParamValue = {
-  prompt?: string;
+  prompt?:
+    | string
+    | {
+        content?: string;
+        messages?: Array<{
+          role?: string;
+          content?: string | Array<{ type?: string; text?: string }>;
+        }>;
+      };
   content?: string;
   messages?: Array<{
     role?: string;
     content?: string | Array<{ type?: string; text?: string }>;
   }>;
   model?: string;
+  options?: {
+    model?: string;
+  };
 };
 
 function promptParameter({
@@ -55,8 +66,11 @@ function promptTextFromParameter(param: unknown, fallback: string) {
   if (typeof value?.content === "string" && value.content.trim()) {
     return value.content;
   }
+  if (typeof value?.prompt === "object" && typeof value.prompt.content === "string" && value.prompt.content.trim()) {
+    return value.prompt.content;
+  }
 
-  const messages = value?.messages ?? [];
+  const messages = value?.messages ?? (typeof value?.prompt === "object" ? value.prompt.messages : undefined) ?? [];
   for (const message of messages) {
     const content = message.content;
     if (typeof content === "string" && content.trim()) {
@@ -78,7 +92,7 @@ function promptTextFromParameter(param: unknown, fallback: string) {
 
 function modelFromPromptParameter(param: unknown, fallback: string) {
   const value = param as PromptParamValue | undefined;
-  return value?.model || fallback;
+  return value?.model || value?.options?.model || fallback;
 }
 
 type OneShotInput = {

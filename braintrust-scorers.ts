@@ -13,6 +13,7 @@ const scorerParams = z.object({
 });
 
 type ScoreReturn = {
+  name: string;
   score: number;
   metadata: Record<string, unknown>;
 };
@@ -52,6 +53,7 @@ function existingScore(output: unknown, name: string): ScoreReturn | undefined {
     return undefined;
   }
   return {
+    name,
     score: clampScore(score),
     metadata: asRecord(result.metadata)
   };
@@ -59,6 +61,7 @@ function existingScore(output: unknown, name: string): ScoreReturn | undefined {
 
 function missingScore(name: string): ScoreReturn {
   return {
+    name,
     score: 0,
     metadata: {
       explanation: `${name} failed because the execution report did not include that score.`
@@ -108,6 +111,7 @@ function fallbackCommandScore(output: unknown, name: string, pattern: RegExp): S
   }
 
   return {
+    name,
     score: command.ok ? 1 : 0,
     metadata: {
       explanation: command.ok
@@ -131,6 +135,7 @@ function patchApplies(output: unknown): ScoreReturn {
   }
 
   return {
+    name: "PatchApplies",
     score: result.ok ? 1 : 0,
     metadata: {
       explanation: result.ok
@@ -155,6 +160,7 @@ function traceCompleteness(output: unknown): ScoreReturn {
   const complete = skills > 0 && tools > 0 && decisions > 0 && risks >= 0;
 
   return {
+    name: "TraceCompleteness",
     score: complete ? 1 : 0,
     metadata: {
       explanation: complete
@@ -180,6 +186,7 @@ function requirementCoverage(output: unknown, expected: unknown): ScoreReturn {
     : [];
 
   return {
+    name: "RequirementCoverage",
     score: terms.length === 0 ? 0 : matchedTerms.length / terms.length,
     metadata: {
       explanation:
@@ -211,6 +218,7 @@ function oneShotRunnableApp(output: unknown): ScoreReturn {
   const passed = Object.values(checks).every((result) => result.score === 1);
 
   return {
+    name: "OneShotRunnableApp",
     score: passed ? 1 : 0,
     metadata: {
       explanation: passed

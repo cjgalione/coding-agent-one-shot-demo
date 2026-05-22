@@ -5,3 +5,4 @@ dist/
 fixtures/**/node_modules/
 fixtures/**/dist/
 results/
+.bt/

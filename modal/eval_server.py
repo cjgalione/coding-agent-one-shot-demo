@@ -61,7 +61,7 @@ app = modal.App(
     image=modal_image,
 )
 
-_secrets = [modal.Secret.from_dotenv()]
+_secrets = [modal.Secret.from_name("coding-agent-one-shot-demo")]
 
 
 @app.function(secrets=_secrets, min_containers=1, timeout=3600)
