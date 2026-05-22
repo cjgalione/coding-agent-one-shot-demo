@@ -7,7 +7,7 @@ const port = 5177 + Math.floor(Math.random() * 1000);
 const child = spawn(
   process.platform === "win32" ? "npm.cmd" : "npm",
   ["exec", "vite", "preview", "--", "--host", "127.0.0.1", "--port", String(port)],
-  { stdio: "pipe" }
+  { detached: process.platform !== "win32", stdio: "pipe" }
 );
 
 let output = "";
@@ -47,15 +47,36 @@ async function staticDistCheck() {
   }
 }
 
+let failure;
+
 try {
   await waitForServer();
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   const listenBlocked = message.includes("listen EPERM");
   if (!listenBlocked || process.env.ONE_SHOT_DEMO_REQUIRE_LISTEN === "1") {
-    throw error;
+    failure = error;
+  } else {
+    try {
+      await staticDistCheck();
+    } catch (staticError) {
+      failure = staticError;
+    }
   }
-  await staticDistCheck();
 } finally {
-  child.kill("SIGTERM");
+  if (process.platform === "win32") {
+    child.kill("SIGTERM");
+  } else {
+    try {
+      process.kill(-child.pid, "SIGTERM");
+    } catch {
+      child.kill("SIGTERM");
+    }
+  }
+  child.stdout.destroy();
+  child.stderr.destroy();
+}
+
+if (failure) {
+  throw failure;
 }
