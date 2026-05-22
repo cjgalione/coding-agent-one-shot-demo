@@ -19,6 +19,17 @@ function bufferToAttachmentData(buffer: Buffer) {
 }
 
 async function createRunnableAppBundle(output: EvalOutput, filename: string) {
+  if (output.execution.runnable_app_bundle_base64) {
+    const data = Buffer.from(output.execution.runnable_app_bundle_base64, "base64");
+    return {
+      data,
+      size_bytes: output.execution.runnable_app_bundle_size_bytes ?? data.length,
+      includes_dist: output.execution.ui_health.inspected_files.some((file) =>
+        file.startsWith("dist/")
+      )
+    };
+  }
+
   const bundlePath = path.join(os.tmpdir(), filename);
   await fs.rm(bundlePath, { force: true });
   await execFileAsync("tar", [
@@ -57,6 +68,7 @@ export function buildExecutionArtifact(
     artifacts,
     repo: {
       commit_sha: output.execution.repo_commit_sha,
+      url: output.execution.repo_url,
       path: output.execution.repo_path
     },
     files_changed: output.files_changed,

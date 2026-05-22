@@ -1,5 +1,5 @@
 import type { DatasetCase, EvalOutput, ScoreResult } from "./types.js";
-import { LocalExecutionBackend } from "./backends/execution-backend.js";
+import { createExecutionBackend } from "./backends/execution-backend.js";
 import { runCodingAgent } from "./agent/run-agent.js";
 import { readJson } from "./utils/files.js";
 import { loadEnvFile } from "./utils/env.js";
@@ -27,7 +27,7 @@ type RunOptions = {
 async function runCase(testCase: DatasetCase, options: RunOptions): Promise<EvalOutput> {
   const started = Date.now();
   const agentResult = await runCodingAgent(testCase, { mock: options.mock });
-  const execution = await new LocalExecutionBackend().evaluatePatch({
+  const execution = await createExecutionBackend().evaluatePatch({
     testCase,
     agentResult
   });
@@ -49,12 +49,15 @@ async function runCase(testCase: DatasetCase, options: RunOptions): Promise<Eval
       backend: execution.backend,
       workdir: execution.workdir,
       repo_commit_sha: execution.repo_commit_sha,
+      repo_url: execution.repo_url,
       repo_path: execution.repo_path,
       fast_install: execution.fast_install,
       duration_ms: execution.duration_ms,
       patch_apply: execution.patch_apply,
       commands: execution.commands,
       ui_health: execution.ui_health,
+      runnable_app_bundle_base64: execution.runnable_app_bundle_base64,
+      runnable_app_bundle_size_bytes: execution.runnable_app_bundle_size_bytes,
       artifacts: undefined
     }
   };
@@ -152,6 +155,7 @@ async function runBraintrust(options: RunOptions) {
         input: {
           user_request: testCase.user_request,
           repo_commit_sha: testCase.repo_commit_sha,
+          repo_url: testCase.repo_url,
           repo_path: testCase.repo_path,
           skills: testCase.skills,
           agent_config: testCase.agent_config,

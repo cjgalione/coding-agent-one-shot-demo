@@ -48,6 +48,17 @@ To load the same keys but print local score JSON instead of logging to Braintrus
 npm run eval:real -- --env-file=/absolute/path/to/.env --local
 ```
 
+To run the execution backend on Modal instead of the local temp directory:
+
+```bash
+modal deploy modal/scorer.py
+ONE_SHOT_EXECUTION_BACKEND=modal \
+MODAL_SCORER_URL=https://your-modal-url \
+npm run eval:real -- --env-file=/absolute/path/to/.env
+```
+
+The Modal scorer clones `repo_url`, checks out `repo_commit_sha`, applies the generated patch, runs the configured commands, inspects built UI assets, and returns the same `ExecutionReport` shape as the local backend.
+
 To run only the coding agent ad hoc and save its patch JSON locally:
 
 ```bash
@@ -93,6 +104,7 @@ Each score also logs explanation metadata. For example, `OneShotRunnableApp` inc
 | Workflow requirement | Demo implementation |
 | --- | --- |
 | Prompt plus git commit SHA | `data/cases.json` has `user_request` and `repo_commit_sha` |
+| Public repo checkout | `data/cases.json` includes `repo_url` for remote execution |
 | Code bundle or patch on top of that SHA | Agent returns a unified diff in `patch` |
 | Custom scorer talks to infrastructure | `ExecutionBackend` interface |
 | Black-box infra | `RemoteExecutionBackend` stub documents the handoff |
@@ -111,7 +123,8 @@ Each case includes:
 {
   "id": "inventory-dashboard-001",
   "user_request": "Build an inventory dashboard where an operations manager can see parts, filter by low stock, and add a new part.",
-  "repo_commit_sha": "fixture-placeholder-v1",
+  "repo_url": "https://github.com/cjgalione/coding-agent-one-shot-demo.git",
+  "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
   "repo_path": "fixtures/inventory-app",
   "skills": [
     "react-ui-guidelines.md",

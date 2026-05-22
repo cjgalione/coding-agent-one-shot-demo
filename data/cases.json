@@ -2,7 +2,7 @@
   {
     "id": "inventory-dashboard-001",
     "user_request": "Build an inventory dashboard where an operations manager can see parts, filter by low stock, and add a new part.",
-    "repo_commit_sha": "fixture-placeholder-v1",
+    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -13,7 +13,9 @@
     "agent_config": {
       "model": "env:CODING_AGENT_MODEL|gpt-5.2-codex",
       "temperature": 0.1,
-      "mcp_servers": ["filesystem-readonly"]
+      "mcp_servers": [
+        "filesystem-readonly"
+      ]
     },
     "test_commands": [
       "npm install",
@@ -21,12 +23,18 @@
       "npm test",
       "npm run start:check"
     ],
-    "expected_ui_terms": ["Inventory", "Low stock", "Add part", "Operations"]
+    "expected_ui_terms": [
+      "Inventory",
+      "Low stock",
+      "Add part",
+      "Operations"
+    ],
+    "repo_url": "https://github.com/cjgalione/coding-agent-one-shot-demo.git"
   },
   {
     "id": "reliability-maintenance-002",
     "user_request": "Build a reliability dashboard where a maintenance manager can see equipment failure risks, filter critical assets, and assign a recommended maintenance action.",
-    "repo_commit_sha": "fixture-placeholder-v1",
+    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -37,7 +45,9 @@
     "agent_config": {
       "model": "env:CODING_AGENT_MODEL|gpt-5.2-codex",
       "temperature": 0.1,
-      "mcp_servers": ["filesystem-readonly"]
+      "mcp_servers": [
+        "filesystem-readonly"
+      ]
     },
     "test_commands": [
       "npm install",
@@ -45,12 +55,18 @@
       "npm test",
       "npm run start:check"
     ],
-    "expected_ui_terms": ["Reliability", "Failure risk", "Critical", "Maintenance action"]
+    "expected_ui_terms": [
+      "Reliability",
+      "Failure risk",
+      "Critical",
+      "Maintenance action"
+    ],
+    "repo_url": "https://github.com/cjgalione/coding-agent-one-shot-demo.git"
   },
   {
     "id": "demand-forecasting-003",
     "user_request": "Build a demand forecasting workspace where a demand planner can compare product forecasts, flag variance, and update a forecast note.",
-    "repo_commit_sha": "fixture-placeholder-v1",
+    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -61,7 +77,9 @@
     "agent_config": {
       "model": "env:CODING_AGENT_MODEL|gpt-5.2-codex",
       "temperature": 0.1,
-      "mcp_servers": ["filesystem-readonly"]
+      "mcp_servers": [
+        "filesystem-readonly"
+      ]
     },
     "test_commands": [
       "npm install",
@@ -69,12 +87,18 @@
       "npm test",
       "npm run start:check"
     ],
-    "expected_ui_terms": ["Demand forecast", "Variance", "Update note", "Planner"]
+    "expected_ui_terms": [
+      "Demand forecast",
+      "Variance",
+      "Update note",
+      "Planner"
+    ],
+    "repo_url": "https://github.com/cjgalione/coding-agent-one-shot-demo.git"
   },
   {
     "id": "contested-logistics-004",
     "user_request": "Build a contested logistics console where an operations lead can review supply lanes, identify risk, and choose an alternate route.",
-    "repo_commit_sha": "fixture-placeholder-v1",
+    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -85,7 +109,9 @@
     "agent_config": {
       "model": "env:CODING_AGENT_MODEL|gpt-5.2-codex",
       "temperature": 0.1,
-      "mcp_servers": ["filesystem-readonly"]
+      "mcp_servers": [
+        "filesystem-readonly"
+      ]
     },
     "test_commands": [
       "npm install",
@@ -93,12 +119,18 @@
       "npm test",
       "npm run start:check"
     ],
-    "expected_ui_terms": ["Logistics", "Supply lanes", "Risk", "Alternate route"]
+    "expected_ui_terms": [
+      "Logistics",
+      "Supply lanes",
+      "Risk",
+      "Alternate route"
+    ],
+    "repo_url": "https://github.com/cjgalione/coding-agent-one-shot-demo.git"
   },
   {
     "id": "property-appraisal-005",
     "user_request": "Build a property appraisal review app where an assessor can inspect parcels, compare sales, and mark an appraisal as ready for review.",
-    "repo_commit_sha": "fixture-placeholder-v1",
+    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -109,7 +141,9 @@
     "agent_config": {
       "model": "env:CODING_AGENT_MODEL|gpt-5.2-codex",
       "temperature": 0.1,
-      "mcp_servers": ["filesystem-readonly"]
+      "mcp_servers": [
+        "filesystem-readonly"
+      ]
     },
     "test_commands": [
       "npm install",
@@ -117,12 +151,18 @@
       "npm test",
       "npm run start:check"
     ],
-    "expected_ui_terms": ["Property appraisal", "Parcels", "Comparable sales", "Ready for review"]
+    "expected_ui_terms": [
+      "Property appraisal",
+      "Parcels",
+      "Comparable sales",
+      "Ready for review"
+    ],
+    "repo_url": "https://github.com/cjgalione/coding-agent-one-shot-demo.git"
   },
   {
     "id": "fraud-alert-review-006",
     "user_request": "Build a fraud alert review screen where an investigator can review suspicious transactions, filter high-risk alerts, and mark an alert as reviewed.",
-    "repo_commit_sha": "fixture-placeholder-v1",
+    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -133,7 +173,9 @@
     "agent_config": {
       "model": "env:CODING_AGENT_MODEL|gpt-5.2-codex",
       "temperature": 0.1,
-      "mcp_servers": ["filesystem-readonly"]
+      "mcp_servers": [
+        "filesystem-readonly"
+      ]
     },
     "test_commands": [
       "npm install",
@@ -141,12 +183,18 @@
       "npm test",
       "npm run start:check"
     ],
-    "expected_ui_terms": ["Fraud alerts", "Suspicious transactions", "High risk", "Reviewed"]
+    "expected_ui_terms": [
+      "Fraud alerts",
+      "Suspicious transactions",
+      "High risk",
+      "Reviewed"
+    ],
+    "repo_url": "https://github.com/cjgalione/coding-agent-one-shot-demo.git"
   },
   {
     "id": "client-onboarding-007",
     "user_request": "Build a client onboarding portal where a customer success manager can see client milestones, mark a kickoff task complete, and add a follow-up note.",
-    "repo_commit_sha": "fixture-placeholder-v1",
+    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -157,7 +205,9 @@
     "agent_config": {
       "model": "env:CODING_AGENT_MODEL|gpt-5.2-codex",
       "temperature": 0.1,
-      "mcp_servers": ["filesystem-readonly"]
+      "mcp_servers": [
+        "filesystem-readonly"
+      ]
     },
     "test_commands": [
       "npm install",
@@ -165,12 +215,18 @@
       "npm test",
       "npm run start:check"
     ],
-    "expected_ui_terms": ["Client onboarding", "Milestones", "Kickoff", "Follow-up note"]
+    "expected_ui_terms": [
+      "Client onboarding",
+      "Milestones",
+      "Kickoff",
+      "Follow-up note"
+    ],
+    "repo_url": "https://github.com/cjgalione/coding-agent-one-shot-demo.git"
   },
   {
     "id": "restaurant-menu-008",
     "user_request": "Build a restaurant menu management app where an owner can manage categories, toggle dish availability, and preview the customer-facing menu.",
-    "repo_commit_sha": "fixture-placeholder-v1",
+    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -181,7 +237,9 @@
     "agent_config": {
       "model": "env:CODING_AGENT_MODEL|gpt-5.2-codex",
       "temperature": 0.1,
-      "mcp_servers": ["filesystem-readonly"]
+      "mcp_servers": [
+        "filesystem-readonly"
+      ]
     },
     "test_commands": [
       "npm install",
@@ -189,12 +247,18 @@
       "npm test",
       "npm run start:check"
     ],
-    "expected_ui_terms": ["Restaurant menu", "Categories", "Available", "Preview menu"]
+    "expected_ui_terms": [
+      "Restaurant menu",
+      "Categories",
+      "Available",
+      "Preview menu"
+    ],
+    "repo_url": "https://github.com/cjgalione/coding-agent-one-shot-demo.git"
   },
   {
     "id": "feedback-widget-admin-009",
     "user_request": "Build a feedback collection dashboard where a SaaS founder can review ratings, filter low-score comments, and mark feedback for follow-up.",
-    "repo_commit_sha": "fixture-placeholder-v1",
+    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -205,7 +269,9 @@
     "agent_config": {
       "model": "env:CODING_AGENT_MODEL|gpt-5.2-codex",
       "temperature": 0.1,
-      "mcp_servers": ["filesystem-readonly"]
+      "mcp_servers": [
+        "filesystem-readonly"
+      ]
     },
     "test_commands": [
       "npm install",
@@ -213,12 +279,18 @@
       "npm test",
       "npm run start:check"
     ],
-    "expected_ui_terms": ["Feedback", "Ratings", "Low score", "Follow-up"]
+    "expected_ui_terms": [
+      "Feedback",
+      "Ratings",
+      "Low score",
+      "Follow-up"
+    ],
+    "repo_url": "https://github.com/cjgalione/coding-agent-one-shot-demo.git"
   },
   {
     "id": "real-estate-leads-010",
     "user_request": "Build a real estate lead capture app where an agent can guide prospects through a two-step property preference form and review submitted leads.",
-    "repo_commit_sha": "fixture-placeholder-v1",
+    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -229,7 +301,9 @@
     "agent_config": {
       "model": "env:CODING_AGENT_MODEL|gpt-5.2-codex",
       "temperature": 0.1,
-      "mcp_servers": ["filesystem-readonly"]
+      "mcp_servers": [
+        "filesystem-readonly"
+      ]
     },
     "test_commands": [
       "npm install",
@@ -237,12 +311,18 @@
       "npm test",
       "npm run start:check"
     ],
-    "expected_ui_terms": ["Real estate", "Property preference", "Submitted leads", "Next step"]
+    "expected_ui_terms": [
+      "Real estate",
+      "Property preference",
+      "Submitted leads",
+      "Next step"
+    ],
+    "repo_url": "https://github.com/cjgalione/coding-agent-one-shot-demo.git"
   },
   {
     "id": "expense-tracker-011",
     "user_request": "Build an expense tracker dashboard where a small team can view monthly spend by category, add an expense, and flag out-of-policy items.",
-    "repo_commit_sha": "fixture-placeholder-v1",
+    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -253,7 +333,9 @@
     "agent_config": {
       "model": "env:CODING_AGENT_MODEL|gpt-5.2-codex",
       "temperature": 0.1,
-      "mcp_servers": ["filesystem-readonly"]
+      "mcp_servers": [
+        "filesystem-readonly"
+      ]
     },
     "test_commands": [
       "npm install",
@@ -261,12 +343,18 @@
       "npm test",
       "npm run start:check"
     ],
-    "expected_ui_terms": ["Expense tracker", "Monthly spend", "Add expense", "Out of policy"]
+    "expected_ui_terms": [
+      "Expense tracker",
+      "Monthly spend",
+      "Add expense",
+      "Out of policy"
+    ],
+    "repo_url": "https://github.com/cjgalione/coding-agent-one-shot-demo.git"
   },
   {
     "id": "waitlist-admin-012",
     "user_request": "Build a SaaS waitlist page with an admin dashboard where a founder can capture emails, view signups, and mark a lead as contacted.",
-    "repo_commit_sha": "fixture-placeholder-v1",
+    "repo_commit_sha": "a96b833b45b25f05960dc14922721ad9b6f7fa1c",
     "repo_path": "fixtures/inventory-app",
     "repo_summary": "A minimal Vite React app that currently renders a placeholder page.",
     "skills": [
@@ -277,7 +365,9 @@
     "agent_config": {
       "model": "env:CODING_AGENT_MODEL|gpt-5.2-codex",
       "temperature": 0.1,
-      "mcp_servers": ["filesystem-readonly"]
+      "mcp_servers": [
+        "filesystem-readonly"
+      ]
     },
     "test_commands": [
       "npm install",
@@ -285,6 +375,12 @@
       "npm test",
       "npm run start:check"
     ],
-    "expected_ui_terms": ["Waitlist", "Email", "Signups", "Contacted"]
+    "expected_ui_terms": [
+      "Waitlist",
+      "Email",
+      "Signups",
+      "Contacted"
+    ],
+    "repo_url": "https://github.com/cjgalione/coding-agent-one-shot-demo.git"
   }
 ]

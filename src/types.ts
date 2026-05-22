@@ -7,6 +7,7 @@ export type AgentConfig = {
 export type DatasetCase = {
   id: string;
   user_request: string;
+  repo_url?: string;
   repo_commit_sha: string;
   repo_path: string;
   repo_summary: string;
@@ -52,6 +53,7 @@ export type CommandResult = {
   stderr_excerpt: string;
   exit_code: number | null;
   execution_mode?: string;
+  execution_location?: string;
 };
 
 export type ScoreResult = {
@@ -64,6 +66,7 @@ export type ExecutionReport = {
   backend: string;
   workdir: string;
   repo_commit_sha: string;
+  repo_url?: string;
   repo_path: string;
   fast_install: boolean;
   duration_ms: number;
@@ -75,6 +78,8 @@ export type ExecutionReport = {
     matched_terms: string[];
     inspected_files: string[];
   };
+  runnable_app_bundle_base64?: string;
+  runnable_app_bundle_size_bytes?: number;
   artifacts?: {
     patch_filename: string;
     report_filename: string;

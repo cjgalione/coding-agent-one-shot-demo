@@ -47,7 +47,8 @@ function commandScore(name: string, result?: CommandResult) {
     duration_ms: result?.duration_ms,
     stdout_excerpt: result?.stdout_excerpt,
     stderr_excerpt: result?.stderr_excerpt,
-    execution_mode: result?.execution_mode
+    execution_mode: result?.execution_mode,
+    execution_location: result?.execution_location
   });
 }
 
@@ -175,7 +176,8 @@ async function traceCommand(command: string, workdir: string, run: () => Promise
         },
         metadata: {
           scorer: scorerForCommand(command),
-          fast_install: process.env.ONE_SHOT_DEMO_FAST_INSTALL !== "0"
+          fast_install: process.env.ONE_SHOT_DEMO_FAST_INSTALL !== "0",
+          execution_location: "local"
         }
       });
 
@@ -190,7 +192,8 @@ async function traceCommand(command: string, workdir: string, run: () => Promise
           stdout_excerpt: result.stdout_excerpt,
           stderr_excerpt: result.stderr_excerpt,
           timeout_ms: result.timeout_ms,
-          execution_mode: result.execution_mode
+          execution_mode: result.execution_mode,
+          execution_location: result.execution_location ?? "local"
         }
       });
       return result;
@@ -206,7 +209,7 @@ async function runInstallCommand(command: string, workdir: string): Promise<Comm
 
   if (!shouldFastInstall) {
     const result = await runCommand(command, workdir, { timeoutMs: 180_000 });
-    return { ...result, execution_mode: "strict-npm-install" };
+    return { ...result, execution_mode: "strict-npm-install", execution_location: "local" };
   }
 
   const target = path.join(workdir, "node_modules");
@@ -224,7 +227,8 @@ async function runInstallCommand(command: string, workdir: string): Promise<Comm
       stdout_excerpt: excerpt(stdout),
       stderr_excerpt: "",
       exit_code: 0,
-      execution_mode: "fast-linked-node-modules"
+      execution_mode: "fast-linked-node-modules",
+      execution_location: "local"
     };
   } catch (error) {
     const stderr = error instanceof Error ? error.message : String(error);
@@ -238,7 +242,8 @@ async function runInstallCommand(command: string, workdir: string): Promise<Comm
       stdout_excerpt: "",
       stderr_excerpt: excerpt(stderr),
       exit_code: 1,
-      execution_mode: "fast-linked-node-modules"
+      execution_mode: "fast-linked-node-modules",
+      execution_location: "local"
     };
   }
 }
@@ -385,6 +390,7 @@ export class LocalExecutionBackend implements ExecutionBackend {
       backend: this.name,
       workdir,
       repo_commit_sha: testCase.repo_commit_sha,
+      repo_url: testCase.repo_url,
       repo_path: testCase.repo_path,
       fast_install: process.env.ONE_SHOT_DEMO_FAST_INSTALL !== "0",
       duration_ms: Date.now() - start,
@@ -411,4 +417,102 @@ export class RemoteExecutionBackend implements ExecutionBackend {
         "ExecutionReport shape with scores and metrics."
     );
   }
+}
+
+async function traceReportedCommand(result: CommandResult, cwdBasename: string) {
+  await traced(
+    async (span) => {
+      span.log({
+        input: {
+          command: result.command,
+          cwd_basename: cwdBasename,
+          timeout: result.timeout_ms
+        },
+        output: {
+          ok: result.ok,
+          exit_code: result.exit_code,
+          duration_ms: result.duration_ms
+        },
+        metadata: {
+          scorer: scorerForCommand(result.command),
+          stdout_excerpt: result.stdout_excerpt,
+          stderr_excerpt: result.stderr_excerpt,
+          timeout_ms: result.timeout_ms,
+          execution_mode: result.execution_mode,
+          execution_location: "modal"
+        }
+      });
+    },
+    { name: commandSpanName(result.command) }
+  );
+}
+
+async function replayRemoteReport(report: ExecutionReport) {
+  const cwdBasename = path.basename(report.workdir);
+  await traceReportedCommand(report.patch_apply, cwdBasename);
+  for (const command of report.commands) {
+    await traceReportedCommand(command, cwdBasename);
+  }
+  await traced(
+    async (span) => {
+      span.log({
+        input: {
+          cwd_basename: cwdBasename,
+          expected_terms: report.ui_health.checked_terms
+        },
+        output: {
+          ok: report.scores.BasicUIHealth?.score === 1,
+          matched_terms: report.ui_health.matched_terms,
+          inspected_files: report.ui_health.inspected_files
+        },
+        metadata: {
+          scorer: "BasicUIHealth",
+          execution_location: "modal"
+        }
+      });
+    },
+    { name: "basic_ui_health" }
+  );
+}
+
+export class ModalExecutionBackend implements ExecutionBackend {
+  name = "modal-remote";
+
+  async evaluatePatch({ testCase, agentResult }: EvaluatePatchInput): Promise<ExecutionReport> {
+    const scorerUrl = process.env.MODAL_SCORER_URL;
+    if (!scorerUrl) {
+      throw new Error("MODAL_SCORER_URL is required when ONE_SHOT_EXECUTION_BACKEND=modal.");
+    }
+    if (!testCase.repo_url) {
+      throw new Error(`Case ${testCase.id} is missing repo_url for Modal execution.`);
+    }
+
+    const response = await fetch(`${scorerUrl.replace(/\/$/, "")}/evaluate`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        case_id: testCase.id,
+        repo_url: testCase.repo_url,
+        repo_commit_sha: testCase.repo_commit_sha,
+        repo_path: testCase.repo_path,
+        patch: agentResult.patch,
+        test_commands: testCase.test_commands,
+        expected_ui_terms: testCase.expected_ui_terms
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Modal scorer failed with ${response.status}: ${await response.text()}`);
+    }
+
+    const report = (await response.json()) as ExecutionReport;
+    await replayRemoteReport(report);
+    return report;
+  }
+}
+
+export function createExecutionBackend(): ExecutionBackend {
+  return process.env.ONE_SHOT_EXECUTION_BACKEND === "modal"
+    ? new ModalExecutionBackend()
+    : new LocalExecutionBackend();
 }
