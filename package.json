@@ -1,0 +1,38 @@
+{
+  "name": "coding-agent-one-shot-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:harness": "tsc",
+    "demo": "npm run build:harness && node dist/eval.js --mock",
+    "eval": "npm run build:harness && node dist/eval.js",
+    "eval:real": "npm run build:harness && node dist/eval.js --case=inventory-dashboard-001",
+    "seed:traces": "npm run build:harness && node dist/seed-traces.js",
+    "agent:run": "npm run build:harness && node dist/agent/run-agent.js",
+    "agent:real": "npm run build:harness && node dist/agent/run-agent.js --case=inventory-dashboard-001",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.5.2",
+    "braintrust": "^0.1.0",
+    "fs-extra": "^11.2.0",
+    "openai": "^4.104.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "vite": "^6.3.5",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.15.30",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "jsdom": "^26.1.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+.DS_Store
+fixtures/**/node_modules/
+fixtures/**/dist/
+results/
