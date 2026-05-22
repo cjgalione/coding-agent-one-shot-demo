@@ -272,7 +272,7 @@ modal_image = (
 app = modal.App("coding-agent-one-shot-modal-scorer", image=modal_image)
 
 
-@app.function(secrets=[modal.Secret.from_dotenv()], timeout=1800)
+@app.function(timeout=1800)
 @modal.concurrent(max_inputs=10)
 @modal.asgi_app()
 def scorer_app() -> FastAPI:
