@@ -129,6 +129,175 @@ export async function renderAgentPrompt(testCase: DatasetCase, wrapperOverride?:
     .replace("{{constraints}}", constraints);
 }
 
+async function traceAgentContext(testCase: DatasetCase, model: string, taskPrompt: string) {
+  await traced(
+    async (span) => {
+      const fileTree = await listFiles(testCase.repo_path);
+      span.log({
+        input: {
+          case_id: testCase.id,
+          repo_path: testCase.repo_path,
+          repo_commit_sha: testCase.repo_commit_sha
+        },
+        output: {
+          repo_summary: testCase.repo_summary,
+          file_count: fileTree.length,
+          relevant_context_chars: taskPrompt.length,
+          test_commands: testCase.test_commands
+        },
+        metadata: {
+          component: "context_builder",
+          repo_url: testCase.repo_url,
+          expected_ui_terms: testCase.expected_ui_terms
+        }
+      });
+    },
+    { name: "build_repo_context" }
+  );
+
+  await traced(
+    async (span) => {
+      span.log({
+        input: {
+          requested_skills: testCase.skills
+        },
+        output: {
+          available_skills: testCase.skills.map((skill) => ({
+            name: skill,
+            source: "dataset_case"
+          }))
+        },
+        metadata: {
+          component: "skill_loader",
+          skill_count: testCase.skills.length
+        }
+      });
+    },
+    { name: "load_available_skills" }
+  );
+
+  await traced(
+    async (span) => {
+      span.log({
+        input: {
+          requested_model: testCase.agent_config.model,
+          requested_mcp_servers: testCase.agent_config.mcp_servers
+        },
+        output: {
+          primary_agent: {
+            name: "AppPatch Agent",
+            model,
+            role: "one-shot app builder"
+          },
+          possible_sub_agents: [
+            {
+              name: "ui_implementer",
+              status: "not_spawned",
+              reason: "Current demo uses a single no-nonsense coding agent, but traces reserve topology for future delegation."
+            },
+            {
+              name: "test_writer",
+              status: "not_spawned",
+              reason: "The primary agent is responsible for updating tests in this minimal harness."
+            },
+            {
+              name: "execution_scorer",
+              status: "external_backend",
+              reason: "Execution is handled by the scorer/backend rather than a model sub-agent."
+            }
+          ]
+        },
+        metadata: {
+          component: "agent_orchestrator",
+          agent_count: 1,
+          possible_sub_agent_count: 3,
+          mcp_servers: testCase.agent_config.mcp_servers
+        }
+      });
+    },
+    { name: "agent_topology" }
+  );
+}
+
+async function traceReportedAgentTrace(agentTrace: AgentResult["agent_trace"]) {
+  await traced(
+    async (span) => {
+      span.log({
+        output: {
+          skills_used: agentTrace.skills_used
+        },
+        metadata: {
+          component: "agent_trace",
+          skill_count: agentTrace.skills_used.length
+        }
+      });
+    },
+    { name: "reported_skills_used" }
+  );
+
+  for (const skill of agentTrace.skills_used) {
+    await traced(
+      async (span) => {
+        span.log({
+          output: skill,
+          metadata: {
+            component: "skill",
+            skill_name: skill.name
+          }
+        });
+      },
+      { name: `skill:${skill.name}` }
+    );
+  }
+
+  await traced(
+    async (span) => {
+      span.log({
+        output: {
+          tools_used: agentTrace.tools_used
+        },
+        metadata: {
+          component: "agent_trace",
+          tool_count: agentTrace.tools_used.length
+        }
+      });
+    },
+    { name: "reported_tools_used" }
+  );
+
+  for (const tool of agentTrace.tools_used) {
+    await traced(
+      async (span) => {
+        span.log({
+          output: tool,
+          metadata: {
+            component: "tool",
+            tool_name: tool.name
+          }
+        });
+      },
+      { name: `tool:${tool.name}` }
+    );
+  }
+
+  await traced(
+    async (span) => {
+      span.log({
+        output: {
+          key_decisions: agentTrace.key_decisions,
+          known_risks: agentTrace.known_risks
+        },
+        metadata: {
+          component: "agent_reasoning_summary",
+          key_decision_count: agentTrace.key_decisions.length,
+          known_risk_count: agentTrace.known_risks.length
+        }
+      });
+    },
+    { name: "decision_and_risk_summary" }
+  );
+}
+
 export async function runCodingAgent(
   testCase: DatasetCase,
   options: {
@@ -178,6 +347,7 @@ export async function runCodingAgent(
         name: "render_task_prompt"
       });
       const model = options.model || resolveModel(testCase);
+      await traceAgentContext(testCase, model, taskPrompt);
       const started = Date.now();
       const client = wrapOpenAI(new OpenAI({ apiKey: process.env.OPENAI_API_KEY }));
 
@@ -195,11 +365,25 @@ export async function runCodingAgent(
       );
 
       const parsed = ModelBundleResultSchema.parse(parseJsonObject(modelResult.content));
-      const patch = await createReplacePatch(
-        fromRoot(testCase.repo_path),
-        Object.fromEntries(parsed.file_updates.map((update) => [update.path, update.content]))
+      const patch = await traced(
+        () =>
+          createReplacePatch(
+            fromRoot(testCase.repo_path),
+            Object.fromEntries(parsed.file_updates.map((update) => [update.path, update.content]))
+          ),
+        {
+          name: "generate_unified_patch",
+          event: {
+            metadata: {
+              component: "harness_diff_generator",
+              file_update_count: parsed.file_updates.length,
+              files_changed: parsed.file_updates.map((update) => update.path)
+            }
+          }
+        }
       );
       const agentTrace = normalizeTrace(parsed.agent_trace, testCase);
+      await traceReportedAgentTrace(agentTrace);
       const result = {
         summary: parsed.summary,
         patch,
@@ -229,6 +413,10 @@ export async function runCodingAgent(
         metadata: {
           response_id: modelResult.responseId,
           model,
+          agent_name: "AppPatch Agent",
+          skills_used: result.agent_trace.skills_used,
+          tools_used: result.agent_trace.tools_used,
+          possible_sub_agents: ["ui_implementer", "test_writer", "execution_scorer"],
           estimated_input_tokens: result.estimated_tokens.input,
           estimated_output_tokens: result.estimated_tokens.output,
           estimated_cost_usd: result.estimated_cost_usd
