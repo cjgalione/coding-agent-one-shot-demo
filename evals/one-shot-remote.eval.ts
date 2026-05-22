@@ -17,25 +17,21 @@ const defaultSystemPrompt = readFileSync("prompts/system.md", "utf8");
 const defaultTaskWrapperPrompt = readFileSync("prompts/task-wrapper.md", "utf8");
 
 type PromptParamValue = {
-  prompt?: {
-    type?: string;
-    content?: string;
-    messages?: Array<{
-      role?: string;
-      content?: string | Array<{ type?: string; text?: string }>;
-    }>;
-  };
-  options?: {
-    model?: string;
-  };
+  prompt?: string;
+  content?: string;
+  messages?: Array<{
+    role?: string;
+    content?: string | Array<{ type?: string; text?: string }>;
+  }>;
+  model?: string;
 };
 
 function promptParameter({
-  prompt,
+  messages,
   model,
   description
 }: {
-  prompt: PromptParamValue["prompt"];
+  messages: PromptParamValue["messages"];
   model: string;
   description: string;
 }) {
@@ -43,23 +39,23 @@ function promptParameter({
     type: "prompt",
     description,
     default: {
-      prompt,
-      options: {
-        model
-      }
+      messages,
+      model
     }
   } as const;
 }
 
 function promptTextFromParameter(param: unknown, fallback: string) {
   const value = param as PromptParamValue | undefined;
-  const prompt = value?.prompt ?? (param as PromptParamValue | undefined);
 
-  if (prompt?.type === "completion" && typeof prompt.content === "string") {
-    return prompt.content;
+  if (typeof value?.prompt === "string" && value.prompt.trim()) {
+    return value.prompt;
+  }
+  if (typeof value?.content === "string" && value.content.trim()) {
+    return value.content;
   }
 
-  const messages = prompt?.messages ?? [];
+  const messages = value?.messages ?? [];
   for (const message of messages) {
     const content = message.content;
     if (typeof content === "string" && content.trim()) {
@@ -81,7 +77,7 @@ function promptTextFromParameter(param: unknown, fallback: string) {
 
 function modelFromPromptParameter(param: unknown, fallback: string) {
   const value = param as PromptParamValue | undefined;
-  return value?.options?.model || fallback;
+  return value?.model || fallback;
 }
 
 type OneShotInput = {
@@ -196,18 +192,12 @@ Eval<OneShotInput, EvalOutput, { expected_ui_terms: string[] }>(
   },
   parameters: {
     app_patch_agent_prompt: promptParameter({
-      prompt: {
-        type: "chat",
-        messages: [{ role: "system", content: defaultSystemPrompt }]
-      },
+      messages: [{ role: "system", content: defaultSystemPrompt }],
       model: "gpt-5.2-codex",
       description: "AppPatch Agent system prompt plus model."
     }),
     task_wrapper_prompt: promptParameter({
-      prompt: {
-        type: "completion",
-        content: defaultTaskWrapperPrompt
-      },
+      messages: [{ role: "user", content: defaultTaskWrapperPrompt }],
       model: "gpt-5.2-codex",
       description: "Template that wraps each input row into the coding-agent task prompt."
     }),
