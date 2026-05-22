@@ -8,6 +8,8 @@
     "demo": "npm run build:harness && node dist/eval.js --mock",
     "eval": "npm run build:harness && node dist/eval.js",
     "eval:real": "npm run build:harness && node dist/eval.js --case=inventory-dashboard-001",
+    "eval:ui": "bt eval --runner tsx --dev evals/one-shot-remote.eval.ts",
+    "eval:list": "bt eval --runner tsx --list evals/one-shot-remote.eval.ts",
     "seed:traces": "npm run build:harness && node dist/seed-traces.js",
     "agent:run": "npm run build:harness && node dist/agent/run-agent.js",
     "agent:real": "npm run build:harness && node dist/agent/run-agent.js --case=inventory-dashboard-001",
@@ -32,6 +34,7 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "jsdom": "^26.1.0",
+    "tsx": "^4.22.3",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   }

@@ -6,7 +6,7 @@ import { loadEnvFile } from "./utils/env.js";
 import { flushBraintrust, initDemoLogger, projectName } from "./braintrust-demo.js";
 import { logExecutionArtifacts } from "./artifacts.js";
 
-const deterministicScores = [
+export const deterministicScores = [
   "OneShotRunnableApp",
   "PatchApplies",
   "InstallSucceeds",
@@ -17,14 +17,14 @@ const deterministicScores = [
   "TraceCompleteness"
 ];
 
-type RunOptions = {
+export type RunOptions = {
   mock: boolean;
   caseId?: string;
   envFile?: string;
   localOnly: boolean;
 };
 
-async function runCase(testCase: DatasetCase, options: RunOptions): Promise<EvalOutput> {
+export async function runCase(testCase: DatasetCase, options: RunOptions): Promise<EvalOutput> {
   const started = Date.now();
   const agentResult = await runCodingAgent(testCase, { mock: options.mock });
   const execution = await createExecutionBackend().evaluatePatch({
@@ -63,7 +63,7 @@ async function runCase(testCase: DatasetCase, options: RunOptions): Promise<Eval
   };
 }
 
-async function loadCases(options: RunOptions) {
+export async function loadCases(options: Pick<RunOptions, "caseId">) {
   const cases = await readJson<DatasetCase[]>("data/cases.json");
   if (!options.caseId) {
     return cases;
@@ -76,11 +76,11 @@ async function loadCases(options: RunOptions) {
   return [testCase];
 }
 
-function scoreValue(output: EvalOutput, name: string) {
+export function scoreValue(output: EvalOutput, name: string) {
   return output.scores[name]?.score ?? 0;
 }
 
-function namedScore(
+export function namedScore(
   name: string,
   scorer: (args: { output: EvalOutput; expected: { expected_ui_terms: string[] } }) => ScoreResult
 ) {
@@ -94,7 +94,7 @@ function namedScore(
   };
 }
 
-function deterministicScore(output: EvalOutput, name: string): ScoreResult {
+export function deterministicScore(output: EvalOutput, name: string): ScoreResult {
   return output.scores[name] ?? {
     name,
     score: 0,
@@ -104,7 +104,7 @@ function deterministicScore(output: EvalOutput, name: string): ScoreResult {
   };
 }
 
-function summarizeScores(scores: Record<string, ScoreResult>) {
+export function summarizeScores(scores: Record<string, ScoreResult>) {
   return Object.fromEntries(
     Object.entries(scores).map(([name, result]) => [name, result.score])
   );
@@ -250,7 +250,7 @@ async function runBraintrust(options: RunOptions) {
   await flushBraintrust();
 }
 
-function parseOptions(): RunOptions {
+export function parseOptions(): RunOptions {
   return {
     mock: process.argv.includes("--mock"),
     caseId: process.argv.find((arg) => arg.startsWith("--case="))?.split("=")[1],
@@ -261,12 +261,14 @@ function parseOptions(): RunOptions {
   };
 }
 
-const options = parseOptions();
-loadEnvFile(options.envFile);
-initDemoLogger();
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const options = parseOptions();
+  loadEnvFile(options.envFile);
+  initDemoLogger();
 
-if (process.env.BRAINTRUST_API_KEY && !options.localOnly) {
-  await runBraintrust(options);
-} else {
-  await runLocal(options);
+  if (process.env.BRAINTRUST_API_KEY && !options.localOnly) {
+    await runBraintrust(options);
+  } else {
+    await runLocal(options);
+  }
 }
