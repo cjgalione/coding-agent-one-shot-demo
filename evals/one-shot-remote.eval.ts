@@ -16,6 +16,74 @@ import { loadEnvFile } from "../src/utils/env.js";
 const defaultSystemPrompt = readFileSync("prompts/system.md", "utf8");
 const defaultTaskWrapperPrompt = readFileSync("prompts/task-wrapper.md", "utf8");
 
+type PromptParamValue = {
+  prompt?: {
+    type?: string;
+    content?: string;
+    messages?: Array<{
+      role?: string;
+      content?: string | Array<{ type?: string; text?: string }>;
+    }>;
+  };
+  options?: {
+    model?: string;
+  };
+};
+
+function promptParameter({
+  prompt,
+  model,
+  description
+}: {
+  prompt: PromptParamValue["prompt"];
+  model: string;
+  description: string;
+}) {
+  return {
+    type: "prompt",
+    description,
+    default: {
+      prompt,
+      options: {
+        model
+      }
+    }
+  } as const;
+}
+
+function promptTextFromParameter(param: unknown, fallback: string) {
+  const value = param as PromptParamValue | undefined;
+  const prompt = value?.prompt ?? (param as PromptParamValue | undefined);
+
+  if (prompt?.type === "completion" && typeof prompt.content === "string") {
+    return prompt.content;
+  }
+
+  const messages = prompt?.messages ?? [];
+  for (const message of messages) {
+    const content = message.content;
+    if (typeof content === "string" && content.trim()) {
+      return content;
+    }
+    if (Array.isArray(content)) {
+      const text = content
+        .map((part) => part.text)
+        .filter((part): part is string => Boolean(part?.trim()))
+        .join("\n");
+      if (text.trim()) {
+        return text;
+      }
+    }
+  }
+
+  return fallback;
+}
+
+function modelFromPromptParameter(param: unknown, fallback: string) {
+  const value = param as PromptParamValue | undefined;
+  return value?.options?.model || fallback;
+}
+
 type OneShotInput = {
   case_id: string;
   user_request: string;
@@ -127,18 +195,22 @@ Eval<OneShotInput, EvalOutput, { expected_ui_terms: string[] }>(
     ];
   },
   parameters: {
-    coding_model: z
-      .string()
-      .default("gpt-5.2-codex")
-      .describe("Coding model used by AppPatch Agent."),
-    system_prompt: z
-      .string()
-      .default(defaultSystemPrompt)
-      .describe("System prompt for AppPatch Agent."),
-    task_wrapper_prompt: z
-      .string()
-      .default(defaultTaskWrapperPrompt)
-      .describe("Template that wraps the playground input into the coding-agent task prompt."),
+    app_patch_agent_prompt: promptParameter({
+      prompt: {
+        type: "chat",
+        messages: [{ role: "system", content: defaultSystemPrompt }]
+      },
+      model: "gpt-5.2-codex",
+      description: "AppPatch Agent system prompt plus model."
+    }),
+    task_wrapper_prompt: promptParameter({
+      prompt: {
+        type: "completion",
+        content: defaultTaskWrapperPrompt
+      },
+      model: "gpt-5.2-codex",
+      description: "Template that wraps each input row into the coding-agent task prompt."
+    }),
     implementation_guidance: z
       .string()
       .default("Prefer a small, working one-shot app over an ambitious broken implementation.")
@@ -146,9 +218,12 @@ Eval<OneShotInput, EvalOutput, { expected_ui_terms: string[] }>(
   },
   task: async (input, hooks) => {
     const params = hooks.parameters;
+    const codingModel = modelFromPromptParameter(params.app_patch_agent_prompt, "gpt-5.2-codex");
+    const systemPrompt = promptTextFromParameter(params.app_patch_agent_prompt, defaultSystemPrompt);
+    const taskWrapperPrompt = promptTextFromParameter(params.task_wrapper_prompt, defaultTaskWrapperPrompt);
     const output = await withTemporaryEnv(
       {
-        CODING_AGENT_MODEL: params.coding_model,
+        CODING_AGENT_MODEL: codingModel,
         ONE_SHOT_EXECUTION_BACKEND: "local",
         ONE_SHOT_DEMO_FAST_INSTALL: "1",
         ONE_SHOT_DEMO_REQUIRE_LISTEN: undefined
@@ -158,9 +233,9 @@ Eval<OneShotInput, EvalOutput, { expected_ui_terms: string[] }>(
           mock: false,
           localOnly: false,
           agent: {
-            model: params.coding_model,
-            systemPrompt: params.system_prompt,
-            taskWrapperPrompt: `${params.task_wrapper_prompt}\n\nADDITIONAL_IMPLEMENTATION_GUIDANCE:\n${params.implementation_guidance}`
+            model: codingModel,
+            systemPrompt,
+            taskWrapperPrompt: `${taskWrapperPrompt}\n\nADDITIONAL_IMPLEMENTATION_GUIDANCE:\n${params.implementation_guidance}`
           }
         })
     );
