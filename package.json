@@ -11,6 +11,7 @@
     "eval:ui": "bt eval --project coding-agent-one-shot-demo --runner tsx --dev evals/one-shot-remote.eval.ts",
     "eval:list": "bt eval --project coding-agent-one-shot-demo --runner tsx --list evals/one-shot-remote.eval.ts",
     "seed:traces": "npm run build:harness && node dist/seed-traces.js",
+    "replay:project-logs": "npm run build:harness && node dist/replay-experiments-to-project-logs.js",
     "agent:run": "npm run build:harness && node dist/agent/run-agent.js",
     "agent:real": "npm run build:harness && node dist/agent/run-agent.js --case=inventory-dashboard-001",
     "typecheck": "tsc --noEmit"
