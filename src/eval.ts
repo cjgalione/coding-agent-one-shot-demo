@@ -22,11 +22,21 @@ export type RunOptions = {
   caseId?: string;
   envFile?: string;
   localOnly: boolean;
+  agent?: {
+    systemPrompt?: string;
+    taskWrapperPrompt?: string;
+    model?: string;
+  };
 };
 
 export async function runCase(testCase: DatasetCase, options: RunOptions): Promise<EvalOutput> {
   const started = Date.now();
-  const agentResult = await runCodingAgent(testCase, { mock: options.mock });
+  const agentResult = await runCodingAgent(testCase, {
+    mock: options.mock,
+    systemPrompt: options.agent?.systemPrompt,
+    taskWrapperPrompt: options.agent?.taskWrapperPrompt,
+    model: options.agent?.model
+  });
   const execution = await createExecutionBackend().evaluatePatch({
     testCase,
     agentResult

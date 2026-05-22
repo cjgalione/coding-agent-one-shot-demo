@@ -1,5 +1,6 @@
 import { Eval, currentSpan } from "braintrust";
 import { z } from "zod";
+import { readFileSync } from "node:fs";
 import type { DatasetCase, EvalOutput, ScoreResult } from "../src/types.js";
 import {
   deterministicScore,
@@ -12,8 +13,8 @@ import { logExecutionArtifacts } from "../src/artifacts.js";
 import { readJson } from "../src/utils/files.js";
 import { loadEnvFile } from "../src/utils/env.js";
 
-const defaultModalScorerUrl =
-  "https://curtis-41436--coding-agent-one-shot-modal-scorer-scorer-app.modal.run";
+const defaultSystemPrompt = readFileSync("prompts/system.md", "utf8");
+const defaultTaskWrapperPrompt = readFileSync("prompts/task-wrapper.md", "utf8");
 
 type OneShotInput = {
   case_id: string;
@@ -129,43 +130,38 @@ Eval<OneShotInput, EvalOutput, { expected_ui_terms: string[] }>(
     coding_model: z
       .string()
       .default("gpt-5.2-codex")
-      .describe("Coding model used by AppPatch Agent when mock_agent is false."),
-    mock_agent: z
-      .boolean()
-      .default(false)
-      .describe("Use the deterministic mock patch generator instead of calling the coding model."),
-    execution_backend: z
-      .enum(["modal", "local"])
-      .default("modal")
-      .describe("Where the scorer applies the patch and runs install/build/test/start/UI checks."),
-    modal_scorer_url: z
+      .describe("Coding model used by AppPatch Agent."),
+    system_prompt: z
       .string()
-      .default(defaultModalScorerUrl)
-      .describe("Modal FastAPI endpoint used when execution_backend is modal."),
-    fast_install: z
-      .boolean()
-      .default(true)
-      .describe("Local backend only: link node_modules for speed. Set false for strict npm install."),
-    require_listen: z
-      .boolean()
-      .default(false)
-      .describe("Require the start-check server to bind a localhost port instead of allowing static fallback.")
+      .default(defaultSystemPrompt)
+      .describe("System prompt for AppPatch Agent."),
+    task_wrapper_prompt: z
+      .string()
+      .default(defaultTaskWrapperPrompt)
+      .describe("Template that wraps the playground input into the coding-agent task prompt."),
+    implementation_guidance: z
+      .string()
+      .default("Prefer a small, working one-shot app over an ambitious broken implementation.")
+      .describe("Additional implementation guidance appended to the task prompt for prompt-variant experiments.")
   },
   task: async (input, hooks) => {
     const params = hooks.parameters;
     const output = await withTemporaryEnv(
       {
         CODING_AGENT_MODEL: params.coding_model,
-        ONE_SHOT_EXECUTION_BACKEND: params.execution_backend,
-        MODAL_SCORER_URL:
-          params.execution_backend === "modal" ? params.modal_scorer_url : process.env.MODAL_SCORER_URL,
-        ONE_SHOT_DEMO_FAST_INSTALL: params.fast_install ? "1" : "0",
-        ONE_SHOT_DEMO_REQUIRE_LISTEN: params.require_listen ? "1" : undefined
+        ONE_SHOT_EXECUTION_BACKEND: "local",
+        ONE_SHOT_DEMO_FAST_INSTALL: "1",
+        ONE_SHOT_DEMO_REQUIRE_LISTEN: undefined
       },
       () =>
         runCase(inputToCase(input), {
-          mock: params.mock_agent,
-          localOnly: false
+          mock: false,
+          localOnly: false,
+          agent: {
+            model: params.coding_model,
+            systemPrompt: params.system_prompt,
+            taskWrapperPrompt: `${params.task_wrapper_prompt}\n\nADDITIONAL_IMPLEMENTATION_GUIDANCE:\n${params.implementation_guidance}`
+          }
         })
     );
 

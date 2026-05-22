@@ -106,8 +106,8 @@ const ModelBundleJsonSchema = {
   }
 } as const;
 
-export async function renderAgentPrompt(testCase: DatasetCase) {
-  const wrapper = await readText("prompts/task-wrapper.md");
+export async function renderAgentPrompt(testCase: DatasetCase, wrapperOverride?: string) {
+  const wrapper = wrapperOverride ?? (await readText("prompts/task-wrapper.md"));
   const fileTree = (await listFiles(testCase.repo_path)).join("\n");
   const relevantFiles = await loadRelevantFiles(testCase.repo_path);
   const skills = await loadSkills(testCase.skills);
@@ -131,7 +131,12 @@ export async function renderAgentPrompt(testCase: DatasetCase) {
 
 export async function runCodingAgent(
   testCase: DatasetCase,
-  options: { mock?: boolean } = {}
+  options: {
+    mock?: boolean;
+    systemPrompt?: string;
+    taskWrapperPrompt?: string;
+    model?: string;
+  } = {}
 ): Promise<AgentResult> {
   return traced(
     async (span) => {
@@ -168,11 +173,11 @@ export async function runCodingAgent(
         throw new Error("OPENAI_API_KEY is required unless --mock is passed.");
       }
 
-      const systemPrompt = await readText("prompts/system.md");
-      const taskPrompt = await traced(() => renderAgentPrompt(testCase), {
+      const systemPrompt = options.systemPrompt ?? (await readText("prompts/system.md"));
+      const taskPrompt = await traced(() => renderAgentPrompt(testCase, options.taskWrapperPrompt), {
         name: "render_task_prompt"
       });
-      const model = resolveModel(testCase);
+      const model = options.model || resolveModel(testCase);
       const started = Date.now();
       const client = wrapOpenAI(new OpenAI({ apiKey: process.env.OPENAI_API_KEY }));
 
