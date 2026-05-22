@@ -9,6 +9,7 @@ import subprocess
 import tarfile
 import tempfile
 import time
+import shlex
 from pathlib import Path
 from typing import Any
 
@@ -187,13 +188,27 @@ def evaluate_patch(request: EvaluateRequest) -> dict[str, Any]:
             checkout = safe_command_result(f"git fetch --depth 1 origin {request.repo_commit_sha} && git checkout {request.repo_commit_sha}", clone_dir, timeout_ms=120_000)
             workdir = clone_dir / request.repo_path
             apply_result = safe_command_result(
-                "git apply --whitespace=nowarn -",
-                workdir,
+                f"git apply --whitespace=nowarn --directory={shlex.quote(request.repo_path)} -",
+                clone_dir,
                 stdin=request.patch,
                 timeout_ms=30_000,
             )
             if not checkout["ok"]:
                 apply_result = checkout
+            elif apply_result["ok"]:
+                diff_check = safe_command_result(
+                    f"git diff --quiet -- {shlex.quote(request.repo_path)}",
+                    clone_dir,
+                    timeout_ms=30_000,
+                )
+                if diff_check["exit_code"] == 0:
+                    apply_result = {
+                        **apply_result,
+                        "ok": False,
+                        "stderr": "Patch command exited 0 but produced no repository diff.",
+                        "stderr_excerpt": "Patch command exited 0 but produced no repository diff.",
+                        "exit_code": 1,
+                    }
             commands = []
             if apply_result["ok"]:
                 for command in request.test_commands:

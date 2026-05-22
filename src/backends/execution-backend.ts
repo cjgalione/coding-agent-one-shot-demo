@@ -129,7 +129,7 @@ function oneShotRunnableAppScore(args: {
 }
 
 function commandSpanName(command: string) {
-  if (command === "git apply --whitespace=nowarn -") {
+  if (command.startsWith("git apply")) {
     return "apply_patch";
   }
   if (command.includes("install")) {
@@ -148,7 +148,7 @@ function commandSpanName(command: string) {
 }
 
 function scorerForCommand(command: string) {
-  if (command === "git apply --whitespace=nowarn -") {
+  if (command.startsWith("git apply")) {
     return "PatchApplies";
   }
   if (command.includes("install")) {
