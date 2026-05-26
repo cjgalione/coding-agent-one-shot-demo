@@ -201,4 +201,4 @@ Each case includes:
 
 ## Notes
 
-This is intentionally not a production framework. It is a concrete sales and technical demo showing how an enterprise team can keep its execution environment private while using Braintrust for experiments, scoring visibility, trace review, and iteration.
+This is intentionally not a production framework. It is a concrete reference demo showing how an enterprise team can keep its execution environment private while using Braintrust for experiments, scoring visibility, trace review, and iteration.
