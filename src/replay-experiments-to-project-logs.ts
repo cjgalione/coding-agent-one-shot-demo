@@ -1,6 +1,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { flush, initLogger, traced } from "braintrust";
+import { logExecutionArtifacts } from "./artifacts.js";
 import { defaultProjectName } from "./braintrust-demo.js";
 import type { AgentTrace, CommandResult, EvalOutput, ScoreResult } from "./types.js";
 import { loadEnvFile } from "./utils/env.js";
@@ -44,9 +45,12 @@ type ReplayOptions = {
   project: string;
   projectId?: string;
   since?: string;
+  offset: number;
   limit: number;
   concurrency: number;
   dryRun: boolean;
+  attachArtifacts: boolean;
+  strictArtifacts: boolean;
 };
 
 function optionValue(name: string) {
@@ -59,15 +63,19 @@ function hasFlag(name: string) {
 
 function parseOptions(): ReplayOptions {
   const limit = Number(optionValue("--limit") ?? "1000");
+  const offset = Number(optionValue("--offset") ?? "0");
   const concurrency = Number(optionValue("--concurrency") ?? "8");
   return {
     envFile: optionValue("--env-file") ?? process.env.ONE_SHOT_DEMO_ENV_FILE,
     project: optionValue("--project") ?? process.env.BRAINTRUST_PROJECT_NAME ?? defaultProjectName,
     projectId: optionValue("--project-id"),
     since: optionValue("--since") ?? "2026-05-22T21:14:00.000Z",
+    offset,
     limit,
     concurrency,
-    dryRun: hasFlag("--dry-run")
+    dryRun: hasFlag("--dry-run"),
+    attachArtifacts: !hasFlag("--no-attachments"),
+    strictArtifacts: hasFlag("--strict-attachments")
   };
 }
 
@@ -375,7 +383,16 @@ async function logScorers(scores: Record<string, ScoreResult>) {
 
 async function replayExperiment(experiment: ExperimentSummary, options: ReplayOptions) {
   const logs = await runBtJson<ViewLogsEnvelope>(
-    ["view", "logs", "--object-ref", `experiment:${experiment.id}`, "--limit", "1"],
+    [
+      "view",
+      "logs",
+      "--object-ref",
+      `experiment:${experiment.id}`,
+      "--limit",
+      "1",
+      "--since",
+      experiment.created
+    ],
     options.envFile
   );
   const rootRow = logs.items[0]?.row;
@@ -394,6 +411,13 @@ async function replayExperiment(experiment: ExperimentSummary, options: ReplayOp
 
   await traced(
     async (span) => {
+      if (options.attachArtifacts) {
+        const artifacts = await logExecutionArtifacts(span, output, {
+          strictBundle: options.strictArtifacts
+        });
+        output.execution.artifacts = artifacts;
+      }
+
       span.log({
         input: full.item.input,
         expected: full.item.expected,
@@ -449,6 +473,9 @@ async function main() {
   if (!Number.isInteger(options.limit) || options.limit < 1) {
     throw new Error("--limit must be a positive integer.");
   }
+  if (!Number.isInteger(options.offset) || options.offset < 0) {
+    throw new Error("--offset must be a non-negative integer.");
+  }
   if (!Number.isInteger(options.concurrency) || options.concurrency < 1) {
     throw new Error("--concurrency must be a positive integer.");
   }
@@ -462,10 +489,12 @@ async function main() {
     ["experiments", "list", "--project", options.project],
     options.envFile
   );
-  const selected = experiments.filter((experiment) => isSeedExperiment(experiment, options)).slice(0, options.limit);
+  const selected = experiments
+    .filter((experiment) => isSeedExperiment(experiment, options))
+    .slice(options.offset, options.offset + options.limit);
 
   process.stdout.write(
-    `Selected ${selected.length} experiment traces to replay into project logs for ${options.project}.\n`
+    `Selected ${selected.length} experiment traces to replay into project logs for ${options.project} (offset=${options.offset}).\n`
   );
   if (options.dryRun) {
     process.stdout.write(

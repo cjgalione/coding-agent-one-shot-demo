@@ -9,6 +9,11 @@ import type { EvalOutput } from "./types.js";
 const textEncoder = new TextEncoder();
 const execFileAsync = promisify(execFile);
 
+type LogExecutionArtifactOptions = {
+  includeBundle?: boolean;
+  strictBundle?: boolean;
+};
+
 function toAttachmentData(text: string) {
   const bytes = textEncoder.encode(text);
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
@@ -30,32 +35,58 @@ async function createRunnableAppBundle(output: EvalOutput, filename: string) {
     };
   }
 
+  let bundleSourceDir = output.execution.workdir;
+  let fallbackWorkdir: string | undefined;
+  try {
+    await fs.access(bundleSourceDir);
+  } catch {
+    fallbackWorkdir = await fs.mkdtemp(path.join(os.tmpdir(), "one-shot-replay-app-"));
+    await fs.cp(path.resolve(output.execution.repo_path), fallbackWorkdir, {
+      recursive: true,
+      filter: (source) => !source.includes(`${path.sep}node_modules${path.sep}`)
+    });
+    const patchPath = path.join(fallbackWorkdir, ".one-shot-replay.patch");
+    await fs.writeFile(patchPath, output.patch, "utf8");
+    await execFileAsync("git", ["apply", "--whitespace=nowarn", patchPath], {
+      cwd: fallbackWorkdir,
+      maxBuffer: 64 * 1024 * 1024
+    });
+    await fs.rm(patchPath, { force: true });
+    bundleSourceDir = fallbackWorkdir;
+  }
+
   const bundleDir = await fs.mkdtemp(path.join(os.tmpdir(), "one-shot-bundle-"));
   const bundlePath = path.join(bundleDir, filename);
-  await execFileAsync("tar", [
-    "-czf",
-    bundlePath,
-    "--exclude",
-    "node_modules",
-    "--exclude",
-    ".git",
-    "--exclude",
-    ".DS_Store",
-    "-C",
-    output.execution.workdir,
-    "."
-  ]);
+  try {
+    await execFileAsync("tar", [
+      "-czf",
+      bundlePath,
+      "--exclude",
+      "node_modules",
+      "--exclude",
+      ".git",
+      "--exclude",
+      ".DS_Store",
+      "-C",
+      bundleSourceDir,
+      "."
+    ]);
 
-  const data = await fs.readFile(bundlePath);
-  const stat = await fs.stat(bundlePath);
-  await fs.rm(bundleDir, { recursive: true, force: true });
-  return {
-    data,
-    size_bytes: stat.size,
-    includes_dist: output.execution.ui_health.inspected_files.some((file) =>
-      file.startsWith("dist/")
-    )
-  };
+    const data = await fs.readFile(bundlePath);
+    const stat = await fs.stat(bundlePath);
+    return {
+      data,
+      size_bytes: stat.size,
+      includes_dist: output.execution.ui_health.inspected_files.some((file) =>
+        file.startsWith("dist/")
+      )
+    };
+  } finally {
+    await fs.rm(bundleDir, { recursive: true, force: true });
+    if (fallbackWorkdir) {
+      await fs.rm(fallbackWorkdir, { recursive: true, force: true });
+    }
+  }
 }
 
 export function buildExecutionArtifact(
@@ -96,34 +127,62 @@ export function buildExecutionArtifact(
   };
 }
 
-export async function logExecutionArtifacts(span: { log: (event: Record<string, unknown>) => void }, output: EvalOutput) {
+export async function logExecutionArtifacts(
+  span: { log: (event: Record<string, unknown>) => void },
+  output: EvalOutput,
+  options: LogExecutionArtifactOptions = {}
+) {
   const patchFilename = `${output.case_id}.applied.patch`;
   const reportFilename = `${output.case_id}.execution-report.json`;
   const bundleFilename = `${output.case_id}.runnable-app.tar.gz`;
-  const bundle = await createRunnableAppBundle(output, bundleFilename);
+  const includeBundle = options.includeBundle ?? true;
+  const strictBundle = options.strictBundle ?? true;
+  const bundle = includeBundle
+    ? await createRunnableAppBundle(output, bundleFilename).catch((error: unknown) => {
+        if (strictBundle) {
+          throw error;
+        }
+        return {
+          error: error instanceof Error ? error.message : String(error)
+        };
+      })
+    : undefined;
   const artifacts = {
     patch_filename: patchFilename,
     report_filename: reportFilename,
-    runnable_app_bundle_filename: bundleFilename,
-    runnable_app_bundle_format: "tar.gz",
-    runnable_app_bundle_size_bytes: bundle.size_bytes
+    ...(bundle && "data" in bundle
+      ? {
+          runnable_app_bundle_filename: bundleFilename,
+          runnable_app_bundle_format: "tar.gz",
+          runnable_app_bundle_size_bytes: bundle.size_bytes
+        }
+      : {})
   };
   const report = buildExecutionArtifact(output, artifacts);
 
   span.log({
     metadata: {
       artifacts,
-      runnable_app_bundle: {
-        filename: bundleFilename,
-        format: "tar.gz",
-        size_bytes: bundle.size_bytes,
-        includes_dist: bundle.includes_dist,
-        run_instructions: [
-          "tar -xzf <bundle>.tar.gz",
-          "npm install",
-          "npm run dev"
-        ]
-      },
+      ...(bundle && "data" in bundle
+        ? {
+            runnable_app_bundle: {
+              filename: bundleFilename,
+              format: "tar.gz",
+              size_bytes: bundle.size_bytes,
+              includes_dist: bundle.includes_dist,
+              run_instructions: [
+                "tar -xzf <bundle>.tar.gz",
+                "npm install",
+                "npm run dev"
+              ]
+            }
+          }
+        : {}),
+      ...(bundle && "error" in bundle
+        ? {
+            runnable_app_bundle_error: bundle.error
+          }
+        : {}),
       artifact_files: {
         applied_patch: new Attachment({
           data: toAttachmentData(output.patch),
@@ -135,11 +194,15 @@ export async function logExecutionArtifacts(span: { log: (event: Record<string, 
           filename: reportFilename,
           contentType: "application/json"
         }),
-        runnable_app_bundle: new Attachment({
-          data: bufferToAttachmentData(bundle.data),
-          filename: bundleFilename,
-          contentType: "application/gzip"
-        })
+        ...(bundle && "data" in bundle
+          ? {
+              runnable_app_bundle: new Attachment({
+                data: bufferToAttachmentData(bundle.data),
+                filename: bundleFilename,
+                contentType: "application/gzip"
+              })
+            }
+          : {})
       }
     }
   });
